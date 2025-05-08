@@ -272,7 +272,7 @@ namespace RoomsBookSystem.Migrations
 
                     b.HasIndex("HotelBranchId");
 
-                    b.ToTable("Bookings");
+                    b.ToTable("Bookings", (string)null);
                 });
 
             modelBuilder.Entity("Models.HotelBranch", b =>
@@ -294,7 +294,7 @@ namespace RoomsBookSystem.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HotelBranches");
+                    b.ToTable("HotelBranches", (string)null);
                 });
 
             modelBuilder.Entity("Models.RoomBooking", b =>
@@ -321,7 +321,7 @@ namespace RoomsBookSystem.Migrations
 
                     b.HasIndex("BookingId");
 
-                    b.ToTable("RoomBookings");
+                    b.ToTable("RoomBookings", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

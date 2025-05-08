@@ -1,0 +1,108 @@
+﻿@using Models
+@model dynamic
+@{
+    ViewData["Title"] = "User Details";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <h2 class="mb-4">User Details</h2>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">User Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Name:</strong> @Model.User.FullName</p>
+                    <p><strong>Email:</strong> @Model.User.Email</p>
+                    <p><strong>Phone:</strong> @Model.User.PhoneNumber</p>
+                    <p><strong>National ID:</strong> @Model.User.NationalId</p>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Role Management</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateUserRole" method="post">
+                        <input type="hidden" name="userId" value="@Model.User.Id" />
+                        <div class="form-group mb-3">
+                            <label class="form-label">Admin Role</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="isInRole" value="true"
+                                @(Model.Roles.Contains("Admin") ? "checked" : "")
+                                       onchange="this.form.submit()">
+                                <input type="hidden" name="role" value="Admin" />
+                                <label class="form-check-label">Is Admin</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <a asp-action="Users" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Booking History</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Hotel Branch</th>
+                                    <th>Check In</th>
+                                    <th>Check Out</th>
+                                    <th>Total Rooms</th>
+                                    <th>Status</th>
+                                    <th>Total Price</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var booking in Model.Bookings)
+                                {
+                                    <tr>
+                                        <td>@booking.HotelBranch?.Name</td>
+                                        <td>@booking.CheckInDate.ToShortDateString()</td>
+                                        <td>@booking.CheckOutDate.ToShortDateString()</td>
+                                        <td>@booking.TotalRooms</td>
+                                        <td>
+                                            <span class="badge bg-@(booking.Status switch {
+                                                BookingStatus.Pending => "warning",
+                                                BookingStatus.Confirmed => "success",
+                                                BookingStatus.Cancelled => "danger",
+                                                BookingStatus.Completed => "info",
+                                                _ => "secondary"
+                                            })">
+                                                @booking.Status
+                                            </span>
+                                        </td>
+                                        <td>@booking.TotalPrice.ToString("C")</td>
+                                        <td>
+                                            <a asp-action="BookingDetails" asp-route-id="@booking.Id" class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

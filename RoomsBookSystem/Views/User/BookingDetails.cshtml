@@ -1,0 +1,133 @@
+@model Models.Booking
+@{
+    ViewData["Title"] = "Booking Details";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Booking Details</h2>
+        </div>
+        <div class="col text-end">
+            <a asp-action="Bookings" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Bookings
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4 class="mb-3">Booking Information</h4>
+                    <dl class="row">
+                        <dt class="col-sm-4">Booking ID</dt>
+                        <dd class="col-sm-8">#@Model.Id</dd>
+
+                        <dt class="col-sm-4">Hotel Branch</dt>
+                        <dd class="col-sm-8">@Model.HotelBranch?.Name</dd>
+
+                        <dt class="col-sm-4">Location</dt>
+                        <dd class="col-sm-8">@Model.HotelBranch?.Location</dd>
+
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge bg-@(Model.Status switch {
+                                BookingStatus.Confirmed => "success",
+                                BookingStatus.Pending => "warning",
+                                BookingStatus.Cancelled => "danger",
+                                BookingStatus.Completed => "info",
+                                _ => "secondary"
+                            })">
+                                @Model.Status
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-4">Check In</dt>
+                        <dd class="col-sm-8">@Model.CheckInDate.ToString("MM/dd/yyyy")</dd>
+
+                        <dt class="col-sm-4">Check Out</dt>
+                        <dd class="col-sm-8">@Model.CheckOutDate.ToString("MM/dd/yyyy")</dd>
+
+                        <dt class="col-sm-4">Total Rooms</dt>
+                        <dd class="col-sm-8">@Model.TotalRooms</dd>
+
+                        <dt class="col-sm-4">Total Price</dt>
+                        <dd class="col-sm-8">$@Model.TotalPrice.ToString("N2")</dd>
+
+                        <dt class="col-sm-4">Discount</dt>
+                        <dd class="col-sm-8">@(Model.Customer?.IsRepeated == true ? "5%" : "0%")</dd>
+
+                        <dt class="col-sm-4">Booked On</dt>
+                        <dd class="col-sm-8">@Model.CreatedAt.ToString("MM/dd/yyyy HH:mm")</dd>
+                    </dl>
+                </div>
+
+                <div class="col-md-6">
+                    <h4 class="mb-3">Room Details</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Room Type</th>
+                                    <th>Adults</th>
+                                    <th>Children</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var room in Model.RoomBookings ?? Enumerable.Empty<RoomBooking>())
+                                {
+                                    <tr>
+                                        <td>@room.RoomType</td>
+                                        <td>@room.AdultsCount</td>
+                                        <td>@room.ChildrenCount</td>
+                                        <td>$@room.Booking.TotalPrice.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Status == BookingStatus.Pending || Model.Status == BookingStatus.Confirmed)
+            {
+                <div class="row mt-4">
+                    <div class="col">
+                        <form asp-action="CancelBooking" asp-route-id="@Model.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                <i class="fas fa-times"></i> Cancel Booking
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .card {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        dt {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .badge {
+            font-size: 0.85em;
+            padding: 0.5em 0.75em;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+    </style>
+} 

@@ -1,0 +1,104 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Room Bookings";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <h2 class="mb-4">Room Bookings</h2>
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <form method="get" class="d-flex">
+                <input type="text" name="searchString" value="@Model.SearchString" class="form-control me-2" placeholder="Search bookings...">
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Hotel Branch</th>
+                    <th>Room Type</th>
+                    <th>Check In</th>
+                    <th>Check Out</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var booking in Model.RoomBookings)
+                {
+                    <tr>
+                        <td>@booking.Booking?.Customer?.FullName</td>
+                        <td>@booking.Booking?.HotelBranch?.Name</td>
+                        <td>@booking.RoomType</td>
+                        <td>@booking.Booking?.CheckInDate.ToString("MM/dd/yyyy")</td>
+                        <td>@booking.Booking?.CheckOutDate.ToString("MM/dd/yyyy")</td>
+                        <td>
+                            <span class="badge bg-@(booking.Booking?.Status switch {
+                                BookingStatus.Confirmed => "success",
+                                BookingStatus.Pending => "warning",
+                                BookingStatus.Cancelled => "danger",
+                                BookingStatus.Completed => "info",
+                                _ => "secondary"
+                            })">
+                                @booking.Booking?.Status
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a asp-action="DeleteRoomBooking" asp-route-id="@booking.Id" class="btn btn-sm btn-danger"
+                                   onclick="return confirm('Are you sure you want to delete this room booking?')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div>
+            Showing page @Model.CurrentPage of @Model.TotalPages
+        </div>
+        <nav>
+            <ul class="pagination">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" asp-action="RoomBookings" asp-route-page="@i" asp-route-searchString="@Model.SearchString">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .badge {
+            font-size: 0.85em;
+            padding: 0.5em 0.75em;
+        }
+
+        .btn-group {
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+    </style>
+} 

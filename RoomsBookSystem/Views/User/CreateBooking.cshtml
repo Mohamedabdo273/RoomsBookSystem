@@ -1,0 +1,220 @@
+@model Booking
+@{
+    ViewData["Title"] = "Create Booking";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Create New Booking</h2>
+        </div>
+        <div class="col text-end">
+            <a asp-action="Bookings" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Bookings
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form asp-action="CreateBooking" method="post" id="bookingForm">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h4 class="mb-3">Personal Information</h4>
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" name="PhoneNumber" class="form-control" required pattern="[0-9]{10}" placeholder="Enter your phone number" />
+                            <small class="text-muted">Format: 10 digits (e.g., 1234567890)</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">National ID</label>
+                            <input type="text" name="NationalId" class="form-control" required pattern="[0-9]{14}" placeholder="Enter your national ID" />
+                            <small class="text-muted">Format: 14 digits</small>
+                        </div>
+
+                        <h4 class="mb-3 mt-4">Booking Information</h4>
+                        <div class="mb-3">
+                            <label asp-for="HotelBranchId" class="form-label">Hotel Branch</label>
+                            <select asp-for="HotelBranchId" class="form-select" required>
+                                <option value="">Select a hotel branch</option>
+                                @foreach (var branch in ViewBag.HotelBranches)
+                                {
+                                    <option value="@branch.Id">@branch.Name - @branch.Location</option>
+                                }
+                            </select>
+                            <span asp-validation-for="HotelBranchId" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="CheckInDate" class="form-label">Check In Date</label>
+                                    <input asp-for="CheckInDate" class="form-control" type="date" required min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    <span asp-validation-for="CheckInDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="CheckOutDate" class="form-label">Check Out Date</label>
+                                    <input asp-for="CheckOutDate" class="form-control" type="date" required min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" />
+                                    <span asp-validation-for="CheckOutDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h4 class="mb-3">Room Information</h4>
+                        <div id="roomsContainer">
+                            <div class="room-entry mb-3 p-3 border rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0">Room 1</h5>
+                                    <button type="button" class="btn btn-danger btn-sm remove-room" style="display: none;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Room Type</label>
+                                            <select name="RoomBookings[0].RoomType" class="form-select" required>
+                                                <option value="">Select room type</option>
+                                                <option value="Single">Single</option>
+                                                <option value="Double">Double</option>
+                                                <option value="Suite">Suite</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Adults</label>
+                                            <input type="number" name="RoomBookings[0].NumberOfAdults" class="form-control" min="1" max="4" value="1" required />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Children</label>
+                                            <input type="number" name="RoomBookings[0].NumberOfChildren" class="form-control" min="0" max="4" value="0" required />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="addRoom" class="btn btn-outline-primary">
+                            <i class="fas fa-plus"></i> Add Another Room
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Create Booking
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let roomCount = 1;
+
+            $('#addRoom').click(function () {
+                const newRoom = $('.room-entry:first').clone();
+                roomCount++;
+
+                // Update room number
+                newRoom.find('h5').text('Room ' + roomCount);
+
+                // Update input names
+                newRoom.find('select, input').each(function () {
+                    const name = $(this).attr('name');
+                    if (name) {
+                        $(this).attr('name', name.replace('[0]', '[' + (roomCount - 1) + ']'));
+                    }
+                });
+
+                // Show remove button
+                newRoom.find('.remove-room').show();
+
+                // Clear values
+                newRoom.find('select').val('');
+                newRoom.find('input[type="number"]').val(1);
+
+                $('#roomsContainer').append(newRoom);
+            });
+
+            $(document).on('click', '.remove-room', function () {
+                $(this).closest('.room-entry').remove();
+                updateRoomNumbers();
+            });
+
+            function updateRoomNumbers() {
+                $('.room-entry').each(function (index) {
+                    $(this).find('h5').text('Room ' + (index + 1));
+                    $(this).find('select, input').each(function () {
+                        const name = $(this).attr('name');
+                        if (name) {
+                            $(this).attr('name', name.replace(/\[\d+\]/, '[' + index + ']'));
+                        }
+                    });
+                });
+            }
+
+            // Validate dates
+            $('#CheckInDate, #CheckOutDate').change(function () {
+                const checkIn = new Date($('#CheckInDate').val());
+                const checkOut = new Date($('#CheckOutDate').val());
+
+                if (checkIn >= checkOut) {
+                    alert('Check-out date must be after check-in date');
+                    $(this).val('');
+                }
+            });
+
+            // Validate phone number and national ID
+            $('input[name="PhoneNumber"]').on('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+            });
+
+            $('input[name="NationalId"]').on('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 14);
+            });
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .card {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .room-entry {
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .room-entry:hover {
+            background-color: #e9ecef;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #e9ecef;
+        }
+    </style>
+} 

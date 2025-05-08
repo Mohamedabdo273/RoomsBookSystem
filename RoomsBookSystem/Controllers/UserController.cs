@@ -67,6 +67,7 @@ namespace RoomsBookSystem.Controllers
                 var branches = await _hotelBranchService.GetAllAsync();
                 return View(model);
             }
+
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -76,6 +77,7 @@ namespace RoomsBookSystem.Controllers
             decimal totalPrice = 0;
             var roomBookings = new List<RoomBooking>();
 
+            // Calculate base price without discount
             foreach (var room in model.RoomBookings)
             {
                 var roomBooking = new RoomBooking
@@ -84,7 +86,7 @@ namespace RoomsBookSystem.Controllers
                     AdultsCount = room.AdultsCount,
                     ChildrenCount = room.ChildrenCount
                 };
-                
+
                 decimal roomPrice = CalculateRoomPrice(room.RoomType.Value, room.AdultsCount, room.ChildrenCount);
                 totalPrice += roomPrice;
                 roomBookings.Add(roomBooking);
@@ -101,8 +103,8 @@ namespace RoomsBookSystem.Controllers
             }
             else if (user.IsRepeated == true)
             {
-                discount = 5;
-                totalPrice = totalPrice - (totalPrice * 0.05m);
+                discount = 5; // 5% discount
+                totalPrice = totalPrice * 0.95m; // Apply 5% discount
             }
 
             // Create the booking
@@ -118,6 +120,7 @@ namespace RoomsBookSystem.Controllers
                 CreatedAt = DateTime.UtcNow,
                 TotalRooms = model.RoomBookings.Count
             };
+
             await _bookingService.CreateAsync(booking);
 
             foreach (var roomBooking in roomBookings)
@@ -128,7 +131,6 @@ namespace RoomsBookSystem.Controllers
 
             return RedirectToAction(nameof(Bookings));
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelBooking(int id)

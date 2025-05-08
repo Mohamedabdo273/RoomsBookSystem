@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Models;
+using Microsoft.AspNetCore.Http;
 
 namespace RoomsBookSystem.Controllers
 {
@@ -129,47 +130,73 @@ namespace RoomsBookSystem.Controllers
                 .Take(PageSize)
                 .ToList();
 
-            var viewModel = new
-            {
-                Branches = pagedBranches,
-                CurrentPage = page,
-                TotalPages = totalPages,
-                SearchString = searchString
-            };
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.SearchString = searchString;
 
-            return View(viewModel);
+            return View(pagedBranches);
         }
 
         public IActionResult CreateHotelBranch() => View();
 
         [HttpPost]
-        public async Task<IActionResult> CreateHotelBranch(HotelBranch branch)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateHotelBranch(HotelBranch hotelBranch, IFormFile? branchImage)
         {
-            if (!ModelState.IsValid) return View(branch);
-
-            await _hotelBranchService.CreateAsync(branch);
-            return RedirectToAction(nameof(HotelBranches));
+            if (ModelState.IsValid)
+            {
+                await _hotelBranchService.CreateAsync(hotelBranch, branchImage);
+                TempData["Success"] = "Hotel branch created successfully!";
+                return RedirectToAction(nameof(HotelBranches));
+            }
+            return View(hotelBranch);
         }
 
         public async Task<IActionResult> EditHotelBranch(int id)
         {
-            var branch = await _hotelBranchService.GetByIdAsync(id);
-            if (branch == null) return NotFound();
-            return View(branch);
+            var hotelBranch = await _hotelBranchService.GetByIdAsync(id);
+            if (hotelBranch == null)
+            {
+                return NotFound();
+            }
+            return View(hotelBranch);
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditHotelBranch(HotelBranch branch)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditHotelBranch(int id, HotelBranch hotelBranch, IFormFile? branchImage)
         {
-            if (!ModelState.IsValid) return View(branch);
+            if (id != hotelBranch.Id)
+            {
+                return NotFound();
+            }
 
-            await _hotelBranchService.UpdateAsync(branch);
-            return RedirectToAction(nameof(HotelBranches));
+            if (ModelState.IsValid)
+            {
+                var result = await _hotelBranchService.UpdateAsync(id, hotelBranch, branchImage);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+                TempData["Success"] = "Hotel branch updated successfully!";
+                return RedirectToAction(nameof(HotelBranches));
+            }
+            return View(hotelBranch);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteHotelBranch(int id)
         {
-            await _hotelBranchService.DeleteAsync(id);
+            var result = await _hotelBranchService.DeleteAsync(id);
+            if (result)
+            {
+                TempData["Success"] = "Hotel branch deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Failed to delete hotel branch.";
+            }
             return RedirectToAction(nameof(HotelBranches));
         }
 

@@ -1,108 +1,290 @@
-﻿@model IEnumerable<HotelBranch>
+﻿@using RoomsBookSystem.Models.ViewModels
+@model HotelBranchListViewModel
+
 @{
     ViewData["Title"] = "Home";
     Layout = "_Layout";
 }
 
-<div class="container-fluid">
+<div class="container-fluid px-4">
+    <!-- Hero Section with Search -->
     <div class="row mb-4">
-        <div class="col">
-            <h2>Welcome to Our Hotels</h2>
-            <p class="text-muted">Discover our premium hotel branches across the country</p>
+        <div class="col-12">
+            <div class="hero-section text-center py-5">
+                <h1 class="display-4 mb-3">Welcome to Our Hotels</h1>
+                <p class="lead mb-4">Discover our luxurious hotel branches across the country</p>
+                <div class="search-box mx-auto">
+                    <form method="get" class="d-flex justify-content-center" id="searchForm">
+                        <div class="input-group" style="max-width: 500px;">
+                            <input type="text" name="searchString" value="@Model.SearchString" 
+                                   class="form-control form-control-lg" 
+                                   placeholder="Search by name or location..."
+                                   id="searchInput">
+                            <input type="hidden" name="page" value="1" id="pageInput">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Main Content -->
     <div class="row">
-        @foreach (var branch in Model)
-        {
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100 hotel-card">
-                    @* <div class="card-img-container"> *@
-                    @*     <img src="@(string.IsNullOrEmpty(branch.ImageUrl) ? "/images/default-hotel.jpg" : branch.ImageUrl)"  *@
-                    @*          class="card-img-top" alt="@branch.Name"> *@
-                    @* </div> *@
-                    <div class="card-body">
-                        <h5 class="card-title">@branch.Name</h5>
-                        <p class="card-text text-muted">
-                            <i class="fas fa-map-marker-alt"></i> @branch.Location
-                        </p>
-                        <div class="hotel-features mb-3">
-                            <span class="badge bg-primary me-2">
-                                <i class="fas fa-wifi"></i> Free WiFi
-                            </span>
-                            <span class="badge bg-success me-2">
-                                <i class="fas fa-parking"></i> Parking
-                            </span>
-                            <span class="badge bg-info">
-                                <i class="fas fa-swimming-pool"></i> Pool
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-hotel me-2"></i>
+                            <span class="h5 mb-0">Our Hotel Branches</span>
+                            @if (!string.IsNullOrEmpty(Model.SearchString))
+                            {
+                                <span class="text-muted ms-2">
+                                    (Showing results for "@Model.SearchString")
+                                </span>
+                            }
+                            <span class="text-muted ms-2">
+                                (@Model.TotalItems items found)
                             </span>
                         </div>
                     </div>
-                    <div class="card-footer bg-transparent border-top-0">
-                        <a asp-controller="Home" asp-action="BranchDetails" asp-route-id="@branch.Id" 
-                           class="btn btn-primary w-100">
-                            <i class="fas fa-info-circle"></i> View Details
-                        </a>
-                    </div>
+                </div>
+                <div class="card-body">
+                    @if (!Model.HotelBranches.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h4>No Results Found</h4>
+                            <p class="text-muted">Try adjusting your search criteria or browse all hotels</p>
+                            <a href="@Url.Action("Index")" class="btn btn-outline-primary mt-3">
+                                <i class="fas fa-undo me-1"></i> Clear Search
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row">
+                            @foreach (var branch in Model.HotelBranches)
+                            {
+                                <div class="col-md-4 mb-4">
+                                    <div class="card h-100 branch-card">
+                                        <div class="position-relative">
+                                            @if (!string.IsNullOrEmpty(branch.Img))
+                                            {
+                                                <img src="~/HotelBranchImages/@branch.Img"
+                                                     class="card-img-top"
+                                                     alt="@branch.Name"
+                                                     style="height: 200px; object-fit: cover;"
+                                                     onerror="this.src='/images/no-image.png'" />
+                                            }
+                                            else
+                                            {
+                                                <img src="~/images/no-image.png"
+                                                     class="card-img-top"
+                                                     alt="No Image"
+                                                     style="height: 200px; object-fit: cover;" />
+                                            }
+                                            <div class="position-absolute top-0 end-0 p-2">
+                                                <span class="badge bg-primary">
+                                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                                    @branch.Location
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <h5 class="card-title">@branch.Name</h5>
+                                            <p class="card-text text-muted">
+                                                <i class="fas fa-map-marker-alt me-1"></i>
+                                                @branch.Location
+                                            </p>
+                                        </div>
+                                        <div class="card-footer bg-white border-top">
+                                            <a asp-controller="Home" 
+                                               asp-action="BranchDetails" 
+                                               asp-route-id="@branch.Id" 
+                                               class="btn btn-primary w-100">
+                                                <i class="fas fa-info-circle me-2"></i> View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Pagination -->
+                        @if (Model.TotalPages > 1)
+                        {
+                            <nav aria-label="Page navigation" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { searchString = Model.SearchString, page = Model.CurrentPage - 1 })">
+                                            <i class="fas fa-chevron-left"></i> Previous
+                                        </a>
+                                    </li>
+
+                                    @for (int i = 1; i <= Model.TotalPages; i++)
+                                    {
+                                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                            <a class="page-link" href="@Url.Action("Index", new { searchString = Model.SearchString, page = i })">@i</a>
+                                        </li>
+                                    }
+
+                                    <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { searchString = Model.SearchString, page = Model.CurrentPage + 1 })">
+                                            Next <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        }
+                    }
                 </div>
             </div>
-        }
-    </div>
-
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i> No hotel branches available at the moment.
         </div>
-    }
+    </div>
 </div>
 
 @section Styles {
     <style>
-        .hotel-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .hero-section {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: white;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .search-box .form-control {
             border: none;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: none;
         }
 
-        .hotel-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        .search-box .btn {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
         }
 
-        .card-img-container {
-            height: 200px;
-            overflow: hidden;
-        }
-
-        .card-img-top {
-            width: 100%;
+        .branch-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
             height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
+        }
+        
+        .branch-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .card-img-top {
+            border-top-left-radius: calc(0.25rem - 1px);
+            border-top-right-radius: calc(0.25rem - 1px);
+        }
+        
+        .badge {
+            font-size: 0.8rem;
+            padding: 0.5em 0.8em;
+            backdrop-filter: blur(4px);
+            background-color: rgba(78, 115, 223, 0.9);
         }
 
-        .hotel-card:hover .card-img-top {
-            transform: scale(1.05);
+        .card-body {
+            flex: 1 1 auto;
+        }
+        
+        .card-footer {
+            background-color: #fff !important;
+            padding: 1rem !important;
+            border-top: 1px solid rgba(0,0,0,0.1) !important;
+            margin-top: auto !important;
         }
 
-        .hotel-features .badge {
-            font-size: 0.85em;
-            padding: 0.5em 0.75em;
+        .card-footer .btn {
+            display: block !important;
+            width: 100% !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            position: relative !important;
+            z-index: 10 !important;
+            padding: 0.75rem 1rem !important;
+            font-weight: 500 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            font-size: 0.9rem !important;
+            transition: all 0.3s ease !important;
+            background-color: #4e73df !important;
+            border-color: #4e73df !important;
+            color: #fff !important;
         }
 
-        .card-title {
-            font-weight: 600;
-            color: #2c3e50;
+        .card-footer .btn:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(78, 115, 223, 0.2) !important;
+            background-color: #2e59d9 !important;
+            border-color: #2e59d9 !important;
         }
 
-        .card-text {
+        .card-footer .btn i {
+            transition: transform 0.3s ease !important;
+            margin-right: 0.5rem !important;
+        }
+
+        .card-footer .btn:hover i {
+            transform: translateX(3px) !important;
+        }
+
+        .pagination {
+            margin-bottom: 0;
+        }
+
+        .page-link {
+            color: #4e73df;
+            border: 1px solid #e3e6f0;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+        .page-item.active .page-link {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+
+        .page-link:hover {
+            color: #2e59d9;
+            background-color: #eaecf4;
+            border-color: #e3e6f0;
+        }
+
+        .page-item.disabled .page-link {
             color: #6c757d;
-        }
-
-        .btn-primary {
-            padding: 0.75rem 1.5rem;
-            font-weight: 500;
+            pointer-events: none;
+            background-color: #fff;
+            border-color: #dee2e6;
         }
     </style>
+}
+
+@section Scripts {
+    <script>
+        // Add debounce to search input
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                document.getElementById('pageInput').value = 1;
+                document.getElementById('searchForm').submit();
+            }, 500);
+        });
+    </script>
 }

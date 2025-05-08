@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Models;
 using Repository.IRepository;
 using Repository;
-using RoomsBookSystem.Services;
 using System.Security.Principal;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,9 +50,6 @@ builder.Services.AddScoped<IRoomBooking, RoomBookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IRoomBookingService, RoomBookingService>();
 builder.Services.AddScoped<IHotelBranchService, HotelBranchService>();
-
-// Add email sender service
-builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 builder.Services.AddRazorPages();
 

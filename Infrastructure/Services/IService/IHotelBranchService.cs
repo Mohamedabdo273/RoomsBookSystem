@@ -1,4 +1,5 @@
-﻿using Models;
+﻿using Microsoft.AspNetCore.Http;
+using Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +12,8 @@ namespace infrastructure.Services.IService
     {
         Task<IEnumerable<HotelBranch>> GetAllAsync();
         Task<HotelBranch?> GetByIdAsync(int id);
-        Task CreateAsync(HotelBranch hotelBranch);
-        Task UpdateAsync(HotelBranch hotelBranch);
-        Task DeleteAsync(int id);
+        Task<HotelBranch> CreateAsync(HotelBranch hotelBranch, IFormFile? branchImage);
+        Task<HotelBranch?> UpdateAsync(int id, HotelBranch hotelBranch, IFormFile? branchImage);
+        Task<bool> DeleteAsync(int id);
     }
 }

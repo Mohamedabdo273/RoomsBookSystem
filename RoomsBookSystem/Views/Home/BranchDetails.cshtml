@@ -22,10 +22,32 @@
     <div class="row">
         <div class="col-lg-8">
             <!-- Hotel Image -->
-            @* <div class="card mb-4"> *@
-            @*     <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/default-hotel.jpg" : Model.ImageUrl)"  *@
-            @*          class="card-img-top" alt="@Model.Name" style="height: 400px; object-fit: cover;"> *@
-            @* </div> *@
+            <div class="card mb-4">
+                @if (!string.IsNullOrEmpty(Model.Img))
+                {
+                    <img src="~/HotelBranchImages/@Model.Img"
+                         class="card-img-top"
+                         alt="@Model.Name"
+                         style="height: 400px; object-fit: cover;"
+                         onerror="this.src='/images/no-image.png'" />
+                }
+                else
+                {
+                    <img src="~/images/no-image.png"
+                         class="card-img-top"
+                         alt="No Image"
+                         style="height: 400px; object-fit: cover;" />
+                }
+            </div>
+
+            <!-- Hotel Description -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">About This Hotel</h4>
+                   
+                </div>
+            </div>
+
             <!-- Hotel Features -->
             <div class="card mb-4">
                 <div class="card-body">
@@ -118,12 +140,6 @@
                 <div class="card-body">
                     <h4 class="card-title">Contact Information</h4>
                     <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="fas fa-phone text-primary"></i> +1 234 567 8900
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-envelope text-primary"></i> info@hotel.com
-                        </li>
                         <li>
                             <i class="fas fa-clock text-primary"></i> 24/7 Front Desk
                         </li>
@@ -139,39 +155,60 @@
         .card {
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             border: none;
+            margin-bottom: 1.5rem;
         }
 
         .room-type {
             background-color: #f8f9fa;
             transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.1) !important;
         }
 
         .room-type:hover {
             background-color: #e9ecef;
             transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
         .room-type h5 {
             color: #2c3e50;
             font-weight: 600;
+            margin-bottom: 0.5rem;
         }
 
         .list-unstyled li {
             margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
         }
 
         .list-unstyled i {
             width: 20px;
             margin-right: 10px;
+            color: #4e73df;
         }
 
         .btn-primary {
             padding: 0.5rem 1rem;
             font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(78, 115, 223, 0.2);
         }
 
         .text-muted {
             color: #6c757d !important;
+        }
+
+        .card-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #4e73df;
         }
     </style>
 } 

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Models;
 using infrastructure.Services.IService;
 using Microsoft.AspNetCore.Authorization;
+using RoomsBookSystem.Models.ViewModels;
 
 namespace RoomsBookSystem.Controllers;
 
@@ -17,16 +18,49 @@ public class HomeController : Controller
         _hotelBranchService = hotelBranchService;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string searchString, int? page)
     {
-        var hotelBranches = await _hotelBranchService.GetAllAsync();
-
         if (User.IsInRole("Admin"))
         {
             return RedirectToAction("HotelBranches", "Admin");
         }
 
-        return View("Index", hotelBranches);
+        // Default values
+        int pageSize = 6;
+        int pageNumber = page ?? 1;
+        searchString = searchString ?? string.Empty;
+
+        var allHotels = await _hotelBranchService.GetAllAsync();
+
+        if (!string.IsNullOrEmpty(searchString))
+        {
+            allHotels = allHotels.Where(h =>
+                h.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                h.Location.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        int totalItems = allHotels.Count();
+        var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+        pageNumber = Math.Max(1, Math.Min(pageNumber, totalPages));
+
+        var hotelBranches = allHotels
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        var viewModel = new HotelBranchListViewModel
+        {
+            HotelBranches = hotelBranches,
+            CurrentPage = pageNumber,
+            TotalPages = totalPages,
+            PageSize = pageSize,
+            SearchString = searchString,
+            TotalItems = totalItems
+        };
+
+        return View(viewModel);
     }
 
     public async Task<IActionResult> BranchDetails(int id)

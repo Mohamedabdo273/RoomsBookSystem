@@ -4,51 +4,43 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - RoomsBookSystem</title>
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-    <!-- Toastr Notifications -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
-
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
-
-    <!-- AOS Animation -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.css" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/RoomsBookSystem.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">RoomsBookSystem</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-primary border-bottom box-shadow mb-3">
+            <div class="container">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-hotel me-2"></i>RoomsBook
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home me-1"></i>Home
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        @if (User.Identity.IsAuthenticated && !User.IsInRole("Admin"))
+                        @if (User.Identity.IsAuthenticated && User.IsInRole("User"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="User" asp-action="Bookings">
-                                    <i class="fas fa-calendar-alt"></i> My Bookings
+                                <a class="nav-link" asp-controller="User" asp-action="Bookings">
+                                    <i class="fas fa-calendar-alt me-1"></i>My Bookings
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="User" asp-action="CreateBooking">
+                                    <i class="fas fa-plus-circle me-1"></i>New Booking
                                 </a>
                             </li>
                         }
-                        @if (User.IsInRole("Admin")) 
+                        @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
                         {
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle text-dark" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -56,33 +48,74 @@
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="adminDropdown">
                                     <li><h6 class="dropdown-header">User Management</h6></li>
-                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users">
-                                        <i class="fas fa-users"></i> Users
-                                    </a></li>
-                                    
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="Users">
+                                            <i class="fas fa-users"></i> Users
+                                        </a>
+                                    </li>
+
                                     <li><hr class="dropdown-divider"></li>
                                     <li><h6 class="dropdown-header">Hotel Management</h6></li>
-                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="HotelBranches">
-                                        <i class="fas fa-hotel"></i> Hotel Branches
-                                    </a></li>
-                                    
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="HotelBranches">
+                                            <i class="fas fa-hotel"></i> Hotel Branches
+                                        </a>
+                                    </li>
+
                                     <li><hr class="dropdown-divider"></li>
                                     <li><h6 class="dropdown-header">Booking Management</h6></li>
-                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Bookings">
-                                        <i class="fas fa-calendar-check"></i> Bookings
-                                    </a></li>
-                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="RoomBookings">
-                                        <i class="fas fa-bed"></i> Room Bookings
-                                    </a></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="Bookings">
+                                            <i class="fas fa-calendar-check"></i> Bookings
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="RoomBookings">
+                                            <i class="fas fa-bed"></i> Room Bookings
+                                        </a>
+                                    </li>
                                 </ul>
                             </li>
                         }
-                        <partial name="_LoginPartial" />
+                        
+                    </ul>
+                    <ul class="navbar-nav">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-user-circle me-1"></i>@User.Identity.Name
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                            <button type="submit" class="dropdown-item">
+                                                <i class="fas fa-sign-out-alt me-1"></i>Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Login
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">
+                                    <i class="fas fa-user-plus me-1"></i>Register
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -91,15 +124,12 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - RoomsBookSystem - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; @DateTime.Now.Year - RoomsBookSystem
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

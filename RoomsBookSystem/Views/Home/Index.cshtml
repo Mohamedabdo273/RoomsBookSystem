@@ -72,21 +72,16 @@
                                 <div class="col-md-4 mb-4">
                                     <div class="card h-100 branch-card">
                                         <div class="position-relative">
-                                            @if (!string.IsNullOrEmpty(branch.Img))
-                                            {
-                                                <img src="~/HotelBranchImages/@branch.Img"
-                                                     class="card-img-top"
-                                                     alt="@branch.Name"
-                                                     style="height: 200px; object-fit: cover;"
-                                                     onerror="this.src='/images/no-image.png'" />
+                                            @{
+                                                var imgSrc = !string.IsNullOrEmpty(branch.Img)
+                                                ? $"~/HotelBranchImages/{branch.Img}"
+                                                : "~/images/no-image.png";
                                             }
-                                            else
-                                            {
-                                                <img src="~/images/no-image.png"
-                                                     class="card-img-top"
-                                                     alt="No Image"
-                                                     style="height: 200px; object-fit: cover;" />
-                                            }
+                                            <img src="@Url.Content(imgSrc)"
+                                                 class="card-img-top"
+                                                 alt="@branch.Name"
+                                                 style="height: 200px; object-fit: cover;"
+                                                 loading="lazy" />
                                             <div class="position-absolute top-0 end-0 p-2">
                                                 <span class="badge bg-primary">
                                                     <i class="fas fa-map-marker-alt me-1"></i>
@@ -277,14 +272,42 @@
 
 @section Scripts {
     <script>
-        // Add debounce to search input
-        let searchTimeout;
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                document.getElementById('pageInput').value = 1;
-                document.getElementById('searchForm').submit();
-            }, 500);
+        // Lazy loading implementation
+        document.addEventListener("DOMContentLoaded", function() {
+            const lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
+
+            if ("IntersectionObserver" in window) {
+                let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+                    entries.forEach(function(entry) {
+                        if (entry.isIntersecting) {
+                            let lazyImage = entry.target;
+                            lazyImage.src = lazyImage.dataset.src;
+                            lazyImage.classList.add("loaded");
+                            lazyImageObserver.unobserve(lazyImage);
+                        }
+                    });
+                });
+
+                lazyImages.forEach(function(lazyImage) {
+                    lazyImageObserver.observe(lazyImage);
+                });
+            } else {
+                // Fallback for browsers without IntersectionObserver
+                lazyImages.forEach(function(lazyImage) {
+                    lazyImage.src = lazyImage.dataset.src;
+                    lazyImage.classList.add("loaded");
+                });
+            }
+
+            // Debounced search (keep your existing implementation)
+            let searchTimeout;
+            document.getElementById('searchInput')?.addEventListener('input', function(e) {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    document.getElementById('pageInput').value = 1;
+                    document.getElementById('searchForm').submit();
+                }, 500);
+            });
         });
     </script>
 }

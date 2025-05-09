@@ -3,11 +3,14 @@
 
 @{
     ViewData["Title"] = "Hotel Branches";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    string searchString = ViewBag.SearchString;
 }
 
 <div class="container-fluid px-4">
     <h1 class="mt-4">Hotel Branches</h1>
-    
+
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div>
@@ -34,8 +37,25 @@
                 </div>
             }
 
+            <!-- Search Form -->
+            <form method="get" asp-action="HotelBranches" class="mb-3">
+                <div class="input-group">
+                    <input type="text" name="searchString" value="@searchString" class="form-control" placeholder="Search by name or location...">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    @if (!string.IsNullOrEmpty(searchString))
+                    {
+                        <a asp-action="HotelBranches" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Clear
+                        </a>
+                    }
+                </div>
+                <input type="hidden" name="page" value="1" />
+            </form>
+
             <div class="table-responsive">
-                <table class="table table-bordered table-hover" id="hotelBranchesTable">
+                <table class="table table-bordered table-hover">
                     <thead>
                         <tr>
                             <th>Image</th>
@@ -49,21 +69,16 @@
                         {
                             <tr>
                                 <td>
-                                    @if (!string.IsNullOrEmpty(item.Img))
-                                    {
-                                        <img src="~/HotelBranchImages/@item.Img"
-                                             alt="@item.Name"
-                                             class="img-thumbnail"
-                                             style="max-width: 100px; height: 100px; object-fit: cover;"
-                                             onerror="this.src='/images/no-image.png'" />
+                                    @{
+                                        var imgSrc = !string.IsNullOrEmpty(item.Img)
+                                        ? $"~/HotelBranchImages/{item.Img}"
+                                        : "~/images/no-image.png";
                                     }
-                                    else
-                                    {
-                                        <img src="~/images/no-image.png"
-                                             alt="No Image"
-                                             class="img-thumbnail"
-                                             style="max-width: 100px; height: 100px; object-fit: cover;" />
-                                    }
+                                    <img src="@Url.Content(imgSrc)"
+                                         alt="@item.Name"
+                                         class="img-thumbnail"
+                                         style="width: 100px; height: 100px; object-fit: cover;"
+                                         loading="lazy" />
                                 </td>
                                 <td>@item.Name</td>
                                 <td>@item.Location</td>
@@ -72,7 +87,7 @@
                                         <a asp-action="EditHotelBranch" asp-route-id="@item.Id" class="btn btn-primary btn-sm" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal@(item.Id)" title="Delete">
+                                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" data-branch-id="@item.Id" data-branch-name="@item.Name" title="Delete">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -82,81 +97,102 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination Controls -->
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        <!-- Previous Page -->
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <a class="page-link"
+                               asp-action="HotelBranches"
+                               asp-route-page="@(currentPage - 1)"
+                               asp-route-searchString="@searchString">
+                                Previous
+                            </a>
+                        </li>
+
+                        <!-- Page Numbers -->
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link"
+                                   asp-action="HotelBranches"
+                                   asp-route-page="@i"
+                                   asp-route-searchString="@searchString">
+                                    @i
+                                </a>
+                            </li>
+                        }
+
+                        <!-- Next Page -->
+                        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                            <a class="page-link"
+                               asp-action="HotelBranches"
+                               asp-route-page="@(currentPage + 1)"
+                               asp-route-searchString="@searchString">
+                                Next
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
         </div>
     </div>
 </div>
 
-<!-- Delete Modals -->
-@foreach (var item in Model)
-{
-    <div class="modal fade" id="deleteModal@(item.Id)" tabindex="-1" aria-labelledby="deleteModalLabel@(item.Id)" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel@(item.Id)">Confirm Delete</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Are you sure you want to delete the hotel branch "@item.Name"?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form asp-action="DeleteHotelBranch" asp-route-id="@item.Id" method="post" style="display: inline;">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                </div>
+<!-- Single Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the hotel branch "<span id="branchName"></span>"?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="DeleteHotelBranch" method="post" id="deleteForm">
+                    <input type="hidden" name="id" id="branchId" />
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
             </div>
         </div>
     </div>
-}
+</div>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
-            $('#hotelBranchesTable').DataTable({
-                responsive: true,
-                order: [[1, 'asc']],
-                pageLength: 10,
-                lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
-                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
-                     '<"row"<"col-sm-12"tr>>' +
-                     '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
-                language: {
-                    search: "Search branches:",
-                    lengthMenu: "Show _MENU_ branches per page",
-                    info: "Showing _START_ to _END_ of _TOTAL_ branches",
-                    infoEmpty: "No branches available",
-                    infoFiltered: "(filtered from _MAX_ total branches)",
-                    paginate: {
-                        first: "First",
-                        last: "Last",
-                        next: "Next",
-                        previous: "Previous"
-                    }
-                },
-                initComplete: function () {
-                    // Add custom styling to search box
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
+            // Handle delete button clicks
+            $('#deleteModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var branchId = button.data('branch-id');
+                var branchName = button.data('branch-name');
+
+                $('#branchId').val(branchId);
+                $('#branchName').text(branchName);
+                $('#deleteForm').attr('action', '@Url.Action("DeleteHotelBranch")/' + branchId);
             });
 
             // Handle delete form submission
-            $('form[asp-action="DeleteHotelBranch"]').on('submit', function (e) {
+            $('#deleteForm').on('submit', function (e) {
                 e.preventDefault();
                 var form = $(this);
-                var modal = form.closest('.modal');
-                
+
                 $.ajax({
                     url: form.attr('action'),
                     type: 'POST',
                     data: form.serialize(),
-                    success: function (result) {
-                        modal.modal('hide');
+                    success: function () {
+                        $('#deleteModal').modal('hide');
                         location.reload();
                     },
-                    error: function (error) {
+                    error: function () {
                         alert('An error occurred while deleting the branch.');
                     }
                 });

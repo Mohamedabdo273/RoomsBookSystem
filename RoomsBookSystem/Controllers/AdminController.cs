@@ -267,7 +267,7 @@ namespace RoomsBookSystem.Controllers
                     .ToList();
             }
 
-            // Calculate pagination
+            
             int totalItems = roomBookings.Count();
             int totalPages = (int)Math.Ceiling(totalItems / (double)PageSize);
 
@@ -276,16 +276,14 @@ namespace RoomsBookSystem.Controllers
                 .Take(PageSize)
                 .ToList();
 
-            var viewModel = new
-            {
-                RoomBookings = pagedRoomBookings,
-                CurrentPage = page,
-                TotalPages = totalPages,
-                SearchString = searchString
-            };
+           
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.SearchString = searchString;
 
-            return View(viewModel);
+            return View(pagedRoomBookings);
         }
+
 
         public async Task<IActionResult> DeleteRoomBooking(int id)
         {

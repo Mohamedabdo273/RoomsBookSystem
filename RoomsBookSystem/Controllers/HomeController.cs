@@ -7,6 +7,7 @@ using RoomsBookSystem.Models.ViewModels;
 
 namespace RoomsBookSystem.Controllers;
 
+[AllowAnonymous]
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
@@ -20,7 +21,7 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index(string searchString, int? page)
     {
-        if (User.IsInRole("Admin"))
+        if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
         {
             return RedirectToAction("HotelBranches", "Admin");
         }
@@ -57,7 +58,7 @@ public class HomeController : Controller
             TotalPages = totalPages,
             PageSize = pageSize,
             SearchString = searchString,
-            TotalItems = totalItems
+            TotalItems = totalItems,
         };
 
         return View(viewModel);
